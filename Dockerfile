@@ -11,10 +11,9 @@ VOLUME /tmp
 EXPOSE 8081
 
 # The application's jar file
-ARG JAR_FILE=./target/my-project.jar
 
 # Add the application's jar to the container
-ADD ${JAR_FILE} my-project.jar
+ADD target/my-project.jar my-project.jar
 
 # Run the jar file 
 ENTRYPOINT ["java","-jar","/my-project.jar"]
