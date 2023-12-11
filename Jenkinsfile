@@ -17,5 +17,12 @@ pipeline {
                 sh './mvnw test'
             }
         }
+        stage('Docker build') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                }
+            }
+        }
     }
 }
