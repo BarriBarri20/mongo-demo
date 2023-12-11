@@ -19,6 +19,11 @@ pipeline {
                 sh './mvnw test'
             }
         }
+        stage('List target directory') {
+    steps {
+        sh 'ls -l target'
+    }
+}
         stage('Docker build') {
             steps {
                 script {
