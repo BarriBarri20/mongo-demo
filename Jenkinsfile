@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+    environment {
+        DOCKER_IMAGE = 'akramdocker123/mongo-demo'
+    }
     stages {
         stage('Clone repository') {
             steps {
