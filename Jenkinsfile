@@ -19,15 +19,10 @@ pipeline {
                 sh './mvnw test'
             }
         }
-        stage('List target directory') {
-    steps {
-        sh 'ls -a'
-    }
-}
         stage('Docker build') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
+                    docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
