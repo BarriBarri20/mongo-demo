@@ -2,7 +2,6 @@ pipeline {
     agent any
     environment {
         DOCKER_IMAGE = 'akramdocker123/mongo-demo'
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
     }
     stages {
         stage('Clone repository') {
@@ -26,11 +25,6 @@ pipeline {
                     docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
-        }
-        stage('Login') {
-          steps {
-            sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-          }
         }
         stage('Push Docker Image') {
             steps {
