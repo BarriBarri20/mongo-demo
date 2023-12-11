@@ -22,9 +22,9 @@ pipeline {
         stage('Docker build') {
             steps {
                 script {
-                    dir('/var/lib/jenkins/workspace/github/') {
+                    
                         docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
-                    }
+                    
                 }
             }
         }
