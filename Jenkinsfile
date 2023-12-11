@@ -21,7 +21,7 @@ pipeline {
         }
         stage('List target directory') {
     steps {
-        sh 'ls -l target'
+        sh 'ls -a'
     }
 }
         stage('Docker build') {
