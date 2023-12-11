@@ -2,6 +2,7 @@
 
 ### Overview:
 
+
 Welcome to the DevOps Practical Exam! Your task is to establish a fully automated Continuous Integration/Continuous Deployment (CI/CD) pipeline for a Spring Boot application hosted on [GitHub](https://github.com/HamzaGbada/mongo-demo). This practical exam will assess your ability to leverage Jenkins, Docker, Kubernetes or OpenShift, and SonarQube to enhance the development, testing, and deployment processes for the given Spring Boot application.
 
 ### Instructions:
