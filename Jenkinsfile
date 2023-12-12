@@ -57,7 +57,7 @@ pipeline {
             steps {
                 // Run a command that checks volume persistence
                 // Replace this with the actual command you want to run
-                sh 'docker inspect my_volume'
+                sh 'docker inspect mongodb_data_container'
             }
         }
     }
