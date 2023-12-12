@@ -1,0 +1,26 @@
+version: '3'
+services:
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+
+  springbootapp:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 9090:9090
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/gte3
+      - SPRING_DATA_MONGODB_DATABASE=gte3
+      - SPRING_DATA_MONGODB_PORT=27017
+      - SPRING_DATA_MONGODB_HOST=mongo
+      - SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE=admin
+    depends_on:
+      - mongo
+
+volumes:
+  mongodb_data_container:
