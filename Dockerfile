@@ -8,7 +8,7 @@ LABEL maintainer="akrem.me"
 VOLUME /tmp
 
 # Make port 8080 available to the world outside this container
-EXPOSE 8081
+EXPOSE 9090
 
 # The application's jar file
 
