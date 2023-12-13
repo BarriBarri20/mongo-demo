@@ -10,7 +10,7 @@ services:
   springbootapp:
     build: 
       context: .
-      dockerfile: Dockerfile
+      image: springbootapp
     ports:
       - 9090:9090
     environment:
