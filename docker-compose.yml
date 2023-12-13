@@ -13,12 +13,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - 9090:9090
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/gte3
-      - SPRING_DATA_MONGODB_DATABASE=gte3
-      - SPRING_DATA_MONGODB_PORT=27017
-      - SPRING_DATA_MONGODB_HOST=mongo
-      - SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE=admin
+    env_file:
+      - .env
     depends_on:
       - mongo
 
