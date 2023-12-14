@@ -25,13 +25,11 @@ pipeline {
                 sh "./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
             }
         }
-        stage('Docker Push') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'dockerhub', variable: 'DOCKER_REGISTRY_PASSWORD')]) {
-                        docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_REGISTRY_PASSWORD) {
-                            sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
-                        }
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                        docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").push()
                     }
                 }
             }
