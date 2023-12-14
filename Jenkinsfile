@@ -2,16 +2,25 @@ pipeline {
     agent any
     environment {
         DOCKER_IMAGE = 'akramdocker123/mongo-demo'
-        OPENSHIFT_PROJECT = 'my-project'
-        MONGODB_USER = 'my-user'
-        MONGODB_PASSWORD = 'my-password'
-        MONGODB_DATABASE = 'my-database'
-        SPRING_DATA_MONGODB_URI = "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@mongodb:27017/${MONGODB_DATABASE}"
+        DOCKER_REGISTRY = 'your-docker-registry'
+        OPENSHIFT_CLUSTER = 'your-openshift-cluster'
+        STAGING_PROJECT = 'your-staging-project'
+        PRODUCTION_PROJECT = 'your-production-project'
     }
     stages {
-      gra  stage('Clone repository') {
+        stage('Clone repository') {
             steps {
                 git 'https://github.com/BarriBarri20/mongo-demo'
+            }
+        }
+        stage('SonarQube analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarQube Scanner';
+                    withSonarQubeEnv('My SonarQube Server') {
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
             }
         }
         stage('Build') {
@@ -19,58 +28,96 @@ pipeline {
                 sh "./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
             }
         }
-        stage('Test') {
-            steps {
-                sh './mvnw test'
-            }
-        }
-        stage('Push Docker Image') {
+        stage('Docker Push') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-                        docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").push()
-                    }
-                }
-            }
-        }
-        stage('Deploy MongoDB to OpenShift') {
-            steps {
-                script {
-                    openshift.withCluster('my-cluster') {
-                        openshift.withProject(OPENSHIFT_PROJECT) {
-                            openshift.newApp('mongodb-persistent', '-p', "MONGODB_USER=${MONGODB_USER},MONGODB_PASSWORD=${MONGODB_PASSWORD},MONGODB_DATABASE=${MONGODB_DATABASE}")
+                    withCredentials([string(credentialsId: 'dockerhub', variable: 'DOCKER_REGISTRY_PASSWORD')]) {
+                        docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_REGISTRY_PASSWORD) {
+                            sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
                         }
                     }
                 }
             }
         }
-        stage('Deploy to OpenShift') {
-            steps {
-                script {
-                    openshift.withCluster('my-cluster') {
-                        openshift.withProject(OPENSHIFT_PROJECT) {
-                            def app = openshift.newApp("${DOCKER_IMAGE}:${env.BUILD_NUMBER}", '-e', "SPRING_DATA_MONGODB_URI=${SPRING_DATA_MONGODB_URI}")
-                            app.rollout().status()
-                        }
-                    }
-                }
-            }
-        }
-        stage('Check Volume Persistence') {
-            steps {
-                script {
-                    openshift.withCluster('my-cluster') {
-                        openshift.withProject(OPENSHIFT_PROJECT) {
-                            def pvc = openshift.selector('pvc', 'my-pvc')
-                            if (pvc.exists() && pvc.object().status.phase == 'Bound') {
-                                echo 'Volume is persistent'
-                            } else {
-                                error 'Volume is not persistent'
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // stage('Deploy MongoDB') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'mongodb-credentials', usernameVariable: 'MONGODB_USER', passwordVariable: 'MONGODB_PASSWORD')]) {
+        //                 openshift.withCluster(OPENSHIFT_CLUSTER) {
+        //                     openshift.withProject(STAGING_PROJECT) {
+        //                         sh "oc new-app --template=mongodb-persistent --param=MONGODB_USER=${MONGODB_USER} --param=MONGODB_PASSWORD=${MONGODB_PASSWORD} --param=MONGODB_DATABASE=mydatabase --param=MONGODB_ADMIN_PASSWORD=adminpassword"
+        //                         def mongodbUrl = sh(script: "oc get svc mongodb -o jsonpath='{.spec.clusterIP}'", returnStdout: true).trim()
+        //                         sh "oc set env dc/my-app SPRING_DATA_MONGODB_URI=mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${mongodbUrl}:27017/mydatabase"
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Deploy to Staging') {
+        //     when {
+        //         branch 'staging'
+        //     }
+        //     steps {
+        //         script {
+        //             openshift.withCluster(OPENSHIFT_CLUSTER) {
+        //                 openshift.withProject(STAGING_PROJECT) {
+        //                     def app = openshift.newApp("--name=my-app", "${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+        //                     app.rollout().status()
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     post {
+        //         failure {
+        //             script {
+        //                 openshift.withCluster(OPENSHIFT_CLUSTER) {
+        //                     openshift.withProject(STAGING_PROJECT) {
+        //                         def app = openshift.selector('dc', 'my-app')
+        //                         if (app.exists()) {
+        //                             app.rollback().status()
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Deploy to Production') {
+        //     when {
+        //         branch 'main'
+        //     }
+        //     steps {
+        //         script {
+        //             openshift.withCluster(OPENSHIFT_CLUSTER) {
+        //                 openshift.withProject(PRODUCTION_PROJECT) {
+        //                     def app = openshift.newApp("--name=my-app", "${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+        //                     app.rollout().status()
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Post-deployment Tests') {
+        //     steps {
+        //         script {
+        //             sh 'curl -f http://my-app-url.com'
+        //         }
+        //     }
+        // }
+        // stage('Cleanup') {
+        //     steps {
+        //         script {
+        //             openshift.withCluster(OPENSHIFT_CLUSTER) {
+        //                 openshift.withProject(STAGING_PROJECT) {
+        //                     def app = openshift.selector('dc', 'my-app')
+        //                     if (app.exists()) {
+        //                         app.delete()
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
