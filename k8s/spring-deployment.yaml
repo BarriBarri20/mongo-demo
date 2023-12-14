@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-demo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-demo
+  template:
+    metadata:
+      labels:
+        app: mongo-demo
+    spec:
+      containers:
+        - name: mongo-demo
+          image: aminemighri/mongo-demo:latest
+          ports:
+            - containerPort: 9090
+          env:
+            - name: SPRING_DATA_MONGODB_URI
+              value: mongodb://mongodb/gte-db
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-demo-service  # Corrected service name here
+spec:
+  selector:
+    app: mongo-demo
+  ports:
+    - protocol: TCP
+      port: 9090
+      targetPort: 9090
+  type: LoadBalancer

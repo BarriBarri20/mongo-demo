@@ -34,6 +34,21 @@ pipeline {
                 }
             }
         }
+        stage('Deploy') {
+            steps {
+                script {
+                    withKubeConfig([credentialsId: 'kubernetes']) {
+                    sh """
+                          minikube cache add ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
+                          minikube cache reload
+                          minikube kubectl -- apply -f ./k8s/spring-deployment.yaml
+                          minikube kubectl -- apply -f ./k8s/mongo-deployment.yaml
+                    """
+                    }
+                }
+            }
+        }
+    }
         // stage('Deploy MongoDB') {
         //     steps {
         //         script {
