@@ -22,7 +22,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh "./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                sh "./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=${DOCKER_IMAGE}"
             }
         }
         stage('Push Docker Image') {
